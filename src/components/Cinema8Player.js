@@ -7,25 +7,30 @@ import { getSDK } from './utils'
  * Cinema8Player Component
  */
 
-const SDK_URL = 'https://static-01.cinema8.com/player/api/cinema8.player.api.min.js?v=react-player'
+const DEFAULT_SDK_URL = 'https://static-01.cinema8.com/player/api/cinema8.player.api.min.js?v=react-player'
 const SDK_GLOBAL = 'Cinema8Player'
 
 
 const Cinema8Player =  React.forwardRef((props, ref) => {
 
-  const { id, className, width, height, style, ...rest } = props;
+  // `sdkUrl` lets the host override the player-API script source —
+  // useful for local development against a self-hosted backend, or for
+  // pinning a specific build at deploy time. Defaults to the public CDN
+  // so the production path is unchanged.
+  const { id, className, width, height, style, sdkUrl, ...rest } = props;
+  const SDK_URL = sdkUrl || DEFAULT_SDK_URL;
 
   const containerRef = useRef(null);
   const [player, setPlayer] = useState();
-  
-	useEffect(() => {    
-    player && player.unload();    
+
+	useEffect(() => {
+    player && player.unload();
 		(id || rest.externalVideoUrl) && load();
   }, [id, rest.externalVideoUrl])
-  
+
 
   // Load Player
-	const load = () => {           
+	const load = () => {
     getSDK(SDK_URL, SDK_GLOBAL).then(Cinema8Player => {
       const player = new Cinema8Player(containerRef.current, {
           id,
@@ -35,7 +40,7 @@ const Cinema8Player =  React.forwardRef((props, ref) => {
       });
 
       setPlayer(player);
-      ref && (ref.current = player);      
+      ref && (ref.current = player);
     }, () => {
       console.log("err");
     });
@@ -65,7 +70,9 @@ Cinema8Player.propTypes = {
   height: PropTypes.string,
   style: PropTypes.object,
   host: PropTypes.string,
+  sdkUrl: PropTypes.string,
   autoplay: PropTypes.bool,
+  muted: PropTypes.bool,
   subtitles: PropTypes.string,
   controls: PropTypes.bool,
   externalVideoUrl: PropTypes.string,
